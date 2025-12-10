@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>School CMS (Flask)</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>School CMS (Flask)</h1>
+    <p>Manage Courses and Student Enrollment (server-side)</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>Add New Course</h2>
+      <form action="{{ url_for('add_course') }}" method="post">
+        <input type="text" name="title" placeholder="Course Title" required>
+        <input type="text" name="instructor" placeholder="Instructor" required>
+        <input type="text" name="section" placeholder="Section" required>
+        <button type="submit">Add Course</button>
+      </form>
+    </section>
+
+    <hr>
+
+    <section>
+      <h2>Current Course Schedule</h2>
+      {% if not courses %}
+        <p>No courses scheduled yet. Use the form above to add one!</p>
+      {% endif %}
+
+      {% for course in courses %}
+        <div class="course-item">
+          <h3>{{ course.title }} (Section {{ course.section }})</h3>
+          <p><strong>Instructor:</strong> {{ course.instructor }}</p>
+
+          <form action="{{ url_for('enroll_student') }}" method="post" style="margin-bottom:0.5rem;">
+            <input type="hidden" name="course_id" value="{{ course.id }}">
+            <input name="student_name" placeholder="Student Name" required>
+            <input name="student_id" placeholder="Student ID" required>
+            <button type="submit">Enroll Student</button>
+          </form>
+
+          <p>
+            <a href="{{ url_for('delete_course', course_id=course.id) }}">Delete Course</a>
+          </p>
+
+          {% set enrollments = cms.get_enrollments_by_course(course.id) %}
+          {% if enrollments %}
+            <details>
+              <summary>Enrolled ({{ enrollments|length }})</summary>
+              <ul>
+                {% for en in enrollments %}
+                  <li>{{ en.student_name }} ({{ en.student_id }}) — {{ en.enrolled_date }}</li>
+                {% endfor %}
+              </ul>
+            </details>
+          {% endif %}
+        </div>
+        <hr>
+      {% endfor %}
+    </section>
+  </main>
+</body>
+</html>
